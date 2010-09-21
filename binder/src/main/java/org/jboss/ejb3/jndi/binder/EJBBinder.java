@@ -53,18 +53,22 @@ public class EJBBinder
    {
       this.bean = bean;
 
-      for(Class<?> businessInterface : bean.getBusinessLocals())
-      {
-         views.add(new View(businessInterface, View.Type.BUSINESS_LOCAL, bean));
-      }
-
-      for(Class<?> businessInterface : bean.getBusinessRemotes())
-      {
-         views.add(new View(businessInterface, View.Type.BUSINESS_REMOTE, bean));
-      }
+      constructViews(views, bean.getBusinessLocals(), View.Type.BUSINESS_LOCAL, bean);
+      constructViews(views, bean.getBusinessRemotes(), View.Type.BUSINESS_REMOTE, bean);
 
       if(bean.isLocalBean())
          views.add(new View(bean.getEJBClass(), View.Type.LOCAL_BEAN, bean));
+   }
+
+   private static void constructViews(Collection<View> views, Collection<Class<?>> businessInterfaces, View.Type type, SessionBeanType bean)
+   {
+      if(businessInterfaces == null)
+         return;
+
+      for(Class<?> businessInterface : businessInterfaces)
+      {
+         views.add(new View(businessInterface, type, bean));
+      }
    }
 
    // PostConstruct

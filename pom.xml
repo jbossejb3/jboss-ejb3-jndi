@@ -19,6 +19,8 @@
    <url>http://www.jboss.org/ejb3</url>
 
    <build>
+      <finalName>${artifactId}</finalName>
+
       <plugins>
          <plugin>
             <artifactId>maven-compiler-plugin</artifactId>
@@ -61,6 +63,7 @@
 
    <modules>
       <module>binder</module>
+      <module>deployers</module>
    </modules>
 
    <profiles>
