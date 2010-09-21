@@ -11,38 +11,12 @@
 
    <name>JBoss EJB 3 JNDI Binder</name>
 
-   <properties>
-      <org.jboss.reloaded.naming.version>0.2.0</org.jboss.reloaded.naming.version>
-   </properties>
-
    <!-- Only API dependencies allowed -->
    <dependencies>
       <dependency>
          <groupId>junit</groupId>
          <artifactId>junit</artifactId>
       </dependency>
-      
-      <dependency>
-         <groupId>${javax.ejb.groupId}</groupId>
-         <artifactId>${javax.ejb.artifactId}</artifactId>
-         <version>${javax.ejb.version}</version>
-         <scope>provided</scope>
-      </dependency>
-
-      <dependency>
-         <groupId>${javax.interceptor.groupId}</groupId>
-         <artifactId>${javax.interceptor.artifactId}</artifactId>
-         <version>${javax.interceptor.version}</version>
-         <scope>provided</scope>
-      </dependency>
-
-      <!--
-      <dependency>
-         <groupId>${project.groupId}</groupId>
-         <artifactId>jboss-ejb3-jndi-spi</artifactId>
-         <version>${project.version}</version>
-      </dependency>
-      -->
 
       <dependency>
          <groupId>org.jboss</groupId>
@@ -60,14 +34,12 @@
       <dependency>
          <groupId>org.jboss.reloaded.naming</groupId>
          <artifactId>jboss-reloaded-naming-impl</artifactId>
-         <version>${org.jboss.reloaded.naming.version}</version>
          <scope>test</scope>
       </dependency>
 
       <dependency>
          <groupId>org.jboss.reloaded.naming</groupId>
          <artifactId>jboss-reloaded-naming-spi</artifactId>
-         <version>${org.jboss.reloaded.naming.version}</version>
       </dependency>
 
       <dependency>
