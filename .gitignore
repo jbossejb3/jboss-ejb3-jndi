@@ -1,3 +1,17 @@
+#Idea
 /.idea
 *.iml
 target
+
+#SVN
+.svn
+
+#Eclipse files
+.classpath
+.project
+.settings
+
+#Maven
+eclipse-target
+target
+
