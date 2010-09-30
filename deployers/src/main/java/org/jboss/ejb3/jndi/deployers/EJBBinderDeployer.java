@@ -58,8 +58,7 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
       if(!beanMetaData.isSession())
          return;
 
-      // we just work on EJB3.1 beans
-      if(!beanMetaData.getEjbJarMetaData().isEJB31() || !(beanMetaData instanceof JBossSessionBean31MetaData))
+      if(!beanMetaData.getEjbJarMetaData().isEJB3x())
          return;
 
       JBossSessionBean31MetaData sessionBeanMetaData = (JBossSessionBean31MetaData) beanMetaData;
