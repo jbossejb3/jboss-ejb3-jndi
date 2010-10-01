@@ -33,6 +33,8 @@ public class View
       BUSINESS_LOCAL,
       BUSINESS_REMOTE,
       LOCAL_BEAN,
+      HOME,
+      LOCAL_HOME
    }
 
    private Class<?> businessInterface;

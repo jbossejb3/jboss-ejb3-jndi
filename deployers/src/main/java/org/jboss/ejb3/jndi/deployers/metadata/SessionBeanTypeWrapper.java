@@ -21,30 +21,34 @@
  */
 package org.jboss.ejb3.jndi.deployers.metadata;
 
-import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
-import org.jboss.metadata.ejb.jboss.JBossSessionBean31MetaData;
-import org.jboss.reloaded.naming.spi.JavaEEComponent;
-import org.jboss.reloaded.naming.spi.JavaEEModule;
-
-import javax.naming.Context;
 import java.util.Collection;
 import java.util.LinkedList;
+
+import javax.naming.Context;
+
+import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
+import org.jboss.metadata.ejb.jboss.JBossSessionBean31MetaData;
+import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
+import org.jboss.reloaded.naming.spi.JavaEEComponent;
+import org.jboss.reloaded.naming.spi.JavaEEModule;
 
 /**
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  */
 public class SessionBeanTypeWrapper implements SessionBeanType
 {
-   private JBossSessionBean31MetaData sessionBeanMetaData;
+   private JBossSessionBeanMetaData sessionBeanMetaData;
    private ClassLoader classLoader;
 
    private Collection<Class<?>> businessLocals;
    private Collection<Class<?>> businessRemotes;
+   private Class<?> home;
+   private Class<?> localHome;
    private Class<?> ejbClass;
    private boolean isLocalBean;
    private JavaEEComponent delegate;
 
-   public SessionBeanTypeWrapper(JBossSessionBean31MetaData sessionBeanMetaData, ClassLoader classLoader, JavaEEComponent delegate)
+   public SessionBeanTypeWrapper(JBossSessionBeanMetaData sessionBeanMetaData, ClassLoader classLoader, JavaEEComponent delegate)
            throws ClassNotFoundException
    {
       this.sessionBeanMetaData = sessionBeanMetaData;
@@ -53,8 +57,13 @@ public class SessionBeanTypeWrapper implements SessionBeanType
 
       this.businessLocals = convert(sessionBeanMetaData.getBusinessLocals(), classLoader);
       this.businessRemotes = convert(sessionBeanMetaData.getBusinessRemotes(), classLoader);
+      this.home = convert(sessionBeanMetaData.getHome(), classLoader);
+      this.localHome = convert(sessionBeanMetaData.getLocalHome(), classLoader);
       this.ejbClass = Class.forName(sessionBeanMetaData.getEjbClass(), true, classLoader);
-      this.isLocalBean = sessionBeanMetaData.isNoInterfaceBean();
+      if (sessionBeanMetaData.getEjbJarMetaData().isEJB31() && sessionBeanMetaData instanceof JBossSessionBean31MetaData)
+      {
+         this.isLocalBean = ((JBossSessionBean31MetaData) sessionBeanMetaData).isNoInterfaceBean();
+      }
    }
 
    private static Collection<Class<?>> convert(Collection<String> classNames, ClassLoader loader)
@@ -69,6 +78,14 @@ public class SessionBeanTypeWrapper implements SessionBeanType
          classes.add(Class.forName(className, true, loader));
       }
       return classes;
+   }
+   
+   private static Class<?> convert(String className, ClassLoader loader) throws ClassNotFoundException
+   {
+      if (className == null)
+         return null;
+
+      return Class.forName(className, false, loader);
    }
 
    @Override
@@ -92,7 +109,7 @@ public class SessionBeanTypeWrapper implements SessionBeanType
    @Override
    public Class<?> getHome()
    {
-      throw new RuntimeException("NYI: org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper.getHome");
+      return this.home;
    }
 
    @Override
@@ -110,10 +127,10 @@ public class SessionBeanTypeWrapper implements SessionBeanType
    @Override
    public Class<?> getLocalHome()
    {
-      throw new RuntimeException("NYI: org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper.getLocalHome");
+      return this.localHome;
    }
 
-   public JBossSessionBean31MetaData getSessionBeanMetaData()
+   public JBossSessionBeanMetaData getSessionBeanMetaData()
    {
       return sessionBeanMetaData;
    }

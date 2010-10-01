@@ -31,7 +31,7 @@ import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
 import org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper;
 import org.jboss.ejb3.jndi.deployers.proxy.LegacyProxyFactory;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
-import org.jboss.metadata.ejb.jboss.JBossSessionBean31MetaData;
+import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
 import org.jboss.reloaded.naming.deployers.javaee.JavaEEComponentInformer;
 import org.jboss.reloaded.naming.spi.JavaEEComponent;
 
@@ -43,7 +43,7 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
    public EJBBinderDeployer(JavaEEComponentInformer informer)
    {
       super(informer);
-      addInput(JBossEnterpriseBeanMetaData.class);
+      setInput(JBossEnterpriseBeanMetaData.class);
       setOutput(BeanMetaData.class);
    }
 
@@ -61,7 +61,7 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
       if(!beanMetaData.getEjbJarMetaData().isEJB3x())
          return;
 
-      JBossSessionBean31MetaData sessionBeanMetaData = (JBossSessionBean31MetaData) beanMetaData;
+      JBossSessionBeanMetaData sessionBeanMetaData = (JBossSessionBeanMetaData) beanMetaData;
 
       String appName = getApplicationName(unit);
       String moduleName = getModuleName(unit);
@@ -78,7 +78,7 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
       sessionBeanTypeName += "module=" + moduleName + ",component=" + componentName + ",service=" + SessionBeanTypeWrapper.class.getSimpleName();
       {
          BeanMetaDataBuilder builder = BeanMetaDataBuilderFactory.createBuilder(sessionBeanTypeName, SessionBeanTypeWrapper.class.getName());
-         builder.addConstructorParameter(JBossSessionBean31MetaData.class.getName(), sessionBeanMetaData);
+         builder.addConstructorParameter(JBossSessionBeanMetaData.class.getName(), sessionBeanMetaData);
          builder.addConstructorParameter(ClassLoader.class.getName(), unit.getClassLoader());
          builder.addConstructorParameter(JavaEEComponent.class.getName(), builder.createInject(javaCompName));
 

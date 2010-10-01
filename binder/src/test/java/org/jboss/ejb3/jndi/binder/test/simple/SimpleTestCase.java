@@ -54,6 +54,16 @@ public class SimpleTestCase extends AbstractNamingTestCase
       }
    }
 
+   private interface DummyHome
+   {
+      
+   }
+   
+   private interface DummyLocalHome
+   {
+      
+   }
+   
    @Test
    public void test1() throws NamingException
    {
@@ -70,6 +80,8 @@ public class SimpleTestCase extends AbstractNamingTestCase
       doReturn(module).when(bean).getModule();
       doReturn(asList(InvocationHandler.class)).when(bean).getBusinessLocals();
       doReturn(asList(EventListener.class)).when(bean).getBusinessRemotes();
+      doReturn(DummyHome.class).when(bean).getHome();
+      doReturn(DummyLocalHome.class).when(bean).getLocalHome();
       doReturn(SimpleTestCase.class).when(bean).getEJBClass();
       doReturn(true).when(bean).isLocalBean();
       EJBBinder binder = new EJBBinder(bean);
@@ -80,18 +92,35 @@ public class SimpleTestCase extends AbstractNamingTestCase
       CurrentComponent.push(bean);
       try
       {
+         // Business local
          String expected = "TestBean#" + InvocationHandler.class.getName();
 
          assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean!" + InvocationHandler.class.getName()));
          assertEquals(expected, iniCtx.lookup("java:app/testModule/TestBean!" + InvocationHandler.class.getName()));
          assertEquals(expected, iniCtx.lookup("java:module/TestBean!" + InvocationHandler.class.getName()));
 
+         // Business remote
          expected = "TestBean#" + EventListener.class.getName();
          
          assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean!" + EventListener.class.getName()));
          assertEquals(expected, iniCtx.lookup("java:app/testModule/TestBean!" + EventListener.class.getName()));
          assertEquals(expected, iniCtx.lookup("java:module/TestBean!" + EventListener.class.getName()));
+         
+         // Home interface
+         expected = "TestBean#" + DummyHome.class.getName();
+         
+         assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean!" + DummyHome.class.getName()));
+         assertEquals(expected, iniCtx.lookup("java:app/testModule/TestBean!" + DummyHome.class.getName()));
+         assertEquals(expected, iniCtx.lookup("java:module/TestBean!" + DummyHome.class.getName()));
 
+         // Local home interface
+         expected = "TestBean#" + DummyLocalHome.class.getName();
+         
+         assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean!" + DummyLocalHome.class.getName()));
+         assertEquals(expected, iniCtx.lookup("java:app/testModule/TestBean!" + DummyLocalHome.class.getName()));
+         assertEquals(expected, iniCtx.lookup("java:module/TestBean!" + DummyLocalHome.class.getName()));
+
+         // no-interface view
          expected = "TestBean#" + SimpleTestCase.class.getName();
 
          assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean!" + SimpleTestCase.class.getName()));

@@ -21,6 +21,13 @@
  */
 package org.jboss.ejb3.jndi.binder;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+
 import org.jboss.ejb3.jndi.binder.impl.View;
 import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
 import org.jboss.ejb3.jndi.binder.spi.ProxyFactory;
@@ -28,11 +35,6 @@ import org.jboss.logging.Logger;
 import org.jboss.reloaded.naming.spi.JavaEEApplication;
 import org.jboss.reloaded.naming.spi.JavaEEModule;
 import org.jboss.util.naming.Util;
-
-import javax.naming.Context;
-import javax.naming.NamingException;
-import java.util.Collection;
-import java.util.LinkedList;
 
 /**
  * Bind a view into JNDI according to EJB 3.1 4.4 Global JNDI Access.
@@ -55,6 +57,8 @@ public class EJBBinder
 
       constructViews(views, bean.getBusinessLocals(), View.Type.BUSINESS_LOCAL, bean);
       constructViews(views, bean.getBusinessRemotes(), View.Type.BUSINESS_REMOTE, bean);
+      constructView(views, bean.getHome(), View.Type.HOME, bean);
+      constructView(views, bean.getLocalHome(), View.Type.LOCAL_HOME, bean);
 
       if(bean.isLocalBean())
          views.add(new View(bean.getEJBClass(), View.Type.LOCAL_BEAN, bean));
@@ -69,6 +73,15 @@ public class EJBBinder
       {
          views.add(new View(businessInterface, type, bean));
       }
+   }
+   
+   private static void constructView(Collection<View> views, Class<?> businessInterface, View.Type type, SessionBeanType bean)
+   {
+      if(businessInterface == null)
+         return;
+      Collection<Class<?>> businessInterfaces = new HashSet<Class<?>>();
+      businessInterfaces.add(businessInterface);
+      constructViews(views, businessInterfaces, type, bean);
    }
 
    // PostConstruct
