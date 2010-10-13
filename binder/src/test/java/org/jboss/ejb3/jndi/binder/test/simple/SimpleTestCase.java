@@ -21,6 +21,16 @@
  */
 package org.jboss.ejb3.jndi.binder.test.simple;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+
+import java.lang.reflect.InvocationHandler;
+import java.util.EventListener;
+
+import javax.naming.NamingException;
+
 import org.jboss.ejb3.jndi.binder.EJBBinder;
 import org.jboss.ejb3.jndi.binder.impl.View;
 import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
@@ -30,15 +40,6 @@ import org.jboss.reloaded.naming.CurrentComponent;
 import org.jboss.reloaded.naming.spi.JavaEEApplication;
 import org.jboss.reloaded.naming.spi.JavaEEModule;
 import org.junit.Test;
-
-import javax.naming.NamingException;
-import java.lang.reflect.InvocationHandler;
-import java.util.EventListener;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
@@ -50,7 +51,14 @@ public class SimpleTestCase extends AbstractNamingTestCase
       @Override
       public Object produce(View view)
       {
-         return view.getMetadata().getName() + "#" + view.getBusinessInterface().getName();
+         StringBuilder sb = new StringBuilder();
+         sb.append(view.getMetadata().getName());
+         if (view.getBusinessInterface() != null)
+         {
+            sb.append("#");
+            sb.append(view.getBusinessInterface().getName());
+         }
+         return sb.toString();
       }
    }
 
@@ -126,6 +134,59 @@ public class SimpleTestCase extends AbstractNamingTestCase
          assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean!" + SimpleTestCase.class.getName()));
          assertEquals(expected, iniCtx.lookup("java:app/testModule/TestBean!" + SimpleTestCase.class.getName()));
          assertEquals(expected, iniCtx.lookup("java:module/TestBean!" + SimpleTestCase.class.getName()));
+      }
+      finally
+      {
+         CurrentComponent.pop();
+
+         binder.unbind();
+      }
+   }
+   
+   /**
+    * Tests the jndi bindings of a bean which exposes just 1 view
+    */
+   @Test
+   public void testBeanWithSingleView() throws Exception
+   {
+      // create mock naming constructs
+      JavaEEApplication app = mock(JavaEEApplication.class);
+      doReturn("testApp").when(app).getName();
+      doReturn(createContext()).when(app).getContext();
+      doReturn(true).when(app).isEnterpriseApplicationArchive();
+      JavaEEModule module = mock(JavaEEModule.class);
+      doReturn("testModule").when(module).getName();
+      doReturn(createContext()).when(module).getContext();
+      doReturn(app).when(module).getApplication();
+      
+      // create mock bean
+      SessionBeanType bean = mock(SessionBeanType.class);
+      doReturn(SimpleTestCase.class).when(bean).getEJBClass();
+      // override the name of the bean
+      doReturn("TestBean").when(bean).getName();
+      doReturn(module).when(bean).getModule();
+      // just expose the no-interface view
+      doReturn(true).when(bean).isLocalBean();
+      
+      EJBBinder binder = new EJBBinder(bean);
+      binder.setGlobalContext(javaGlobal);
+      binder.setProxyFactory(new MyProxyFactory());
+      binder.bind();
+
+      CurrentComponent.push(bean);
+      try
+      {
+         // no-interface view
+         String expected = "TestBean#" + SimpleTestCase.class.getName();
+
+         assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean!" + SimpleTestCase.class.getName()));
+         assertEquals(expected, iniCtx.lookup("java:app/testModule/TestBean!" + SimpleTestCase.class.getName()));
+         assertEquals(expected, iniCtx.lookup("java:module/TestBean!" + SimpleTestCase.class.getName()));
+         
+         // the additional JNDI bindings as expected by the spec (for a bean exposing just 1 view)
+         assertEquals(expected, iniCtx.lookup("java:global/testApp/testModule/TestBean"));
+         assertEquals(expected, iniCtx.lookup("java:app/testModule/TestBean"));
+         assertEquals(expected, iniCtx.lookup("java:module/TestBean"));
       }
       finally
       {

@@ -102,27 +102,46 @@ public class EJBBinder
    protected void bind(Context ctx, String name, Object obj) throws NamingException
    {
       if(log.isDebugEnabled())
-         log.debug("Bound " + obj + " at " + name + " under " + ctx);
+         log.debug("Binding " + obj + " at " + name + " under " + ctx);
       Util.bind(ctx, name, obj);
    }
 
    protected void bindApp(View view, Object proxy) throws NamingException
    {
-      // TODO: single view has no interface-name
       String name = getAppJNDIName(view.getBusinessInterface());
       bind(bean.getModule().getApplication().getContext(), name, proxy);
+      
+      // bind to an additional JNDI name (as specified by 4.4.1 section of EJB3.10
+      // when the bean exposes just 1 view
+      if (this.hasSingleView())
+      {
+         bind(bean.getModule().getApplication().getContext(), this.getAppJNDIName(null), proxy);
+      }
+      
    }
 
    protected void bindGlobal(View view, Object proxy) throws NamingException
    {
-      // TODO: single view has no interface-name
       bind(globalContext, getGlobalJNDIName(view.getBusinessInterface()), proxy);
+      
+      // bind to an additional JNDI name (as specified by 4.4.1 section of EJB3.10
+      // when the bean exposes just 1 view
+      if (this.hasSingleView())
+      {
+         bind(globalContext, getGlobalJNDIName(null), proxy);
+      }
    }
 
    protected void bindModule(View view, Object proxy) throws NamingException
    {
-      // TODO: single view has no interface-name
       bind(bean.getModule().getContext(), getModuleJNDIName(view.getBusinessInterface()), proxy);
+      
+      // bind to an additional JNDI name (as specified by 4.4.1 section of EJB3.10
+      // when the bean exposes just 1 view
+      if (this.hasSingleView())
+      {
+         bind(bean.getModule().getContext(), getModuleJNDIName(null), proxy);
+      }
    }
 
    /**
@@ -181,15 +200,46 @@ public class EJBBinder
    protected void unbindApp(View view) throws NamingException
    {
       bean.getModule().getApplication().getContext().unbind(getAppJNDIName(view.getBusinessInterface()));
+      
+      // unbind from the additional JNDI name, if the bean exposed just 1 view
+      if (this.hasSingleView())
+      {
+         bean.getModule().getApplication().getContext().unbind(getAppJNDIName(null));   
+      }
    }
 
    protected void unbindGlobal(View view) throws NamingException
    {
       globalContext.unbind(getGlobalJNDIName(view.getBusinessInterface()));
+      
+      // unbind from the additional JNDI name, if the bean exposed just 1 view
+      if (this.hasSingleView())
+      {
+         globalContext.unbind(getGlobalJNDIName(null));
+      }
    }
 
    protected void unbindModule(View view) throws NamingException
    {
       bean.getModule().getContext().unbind(getModuleJNDIName(view.getBusinessInterface()));
+      
+      // unbind from the additional JNDI name, if the bean exposed just 1 view
+      if (this.hasSingleView())
+      {
+         bean.getModule().getContext().unbind(getModuleJNDIName(null));
+      }
+   }
+   
+   /**
+    * Returns true if the bean exposes just 1 view to the client. Else returns false
+    * @return
+    */
+   protected boolean hasSingleView()
+   {
+      if (this.views != null && this.views.size() == 1)
+      {
+         return true;
+      }
+      return false;
    }
 }
