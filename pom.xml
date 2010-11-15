@@ -10,7 +10,7 @@
 
    <groupId>org.jboss.ejb3.jndi</groupId>
    <artifactId>jboss-ejb3-jndi</artifactId>
-   <version>0.1.3-SNAPSHOT</version>
+   <version>0.1.3</version>
 
    <packaging>pom</packaging>
 
