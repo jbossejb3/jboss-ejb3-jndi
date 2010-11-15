@@ -50,15 +50,11 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
    @Override
    protected void internalDeploy(DeploymentUnit unit) throws DeploymentException
    {
-      // We only work for EJB 3.x session beans
       JBossEnterpriseBeanMetaData beanMetaData = unit.getAttachment(JBossEnterpriseBeanMetaData.class);
       if(beanMetaData == null)
          return;
 
       if(!beanMetaData.isSession())
-         return;
-
-      if(!beanMetaData.getEjbJarMetaData().isEJB3x())
          return;
 
       JBossSessionBeanMetaData sessionBeanMetaData = (JBossSessionBeanMetaData) beanMetaData;

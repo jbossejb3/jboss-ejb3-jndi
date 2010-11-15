@@ -1,6 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment xmlns="urn:jboss:bean-deployer:2.0">
-   <bean name="EJBBinderDeployer" class="org.jboss.ejb3.jndi.deployers.EJBBinderDeployer">
-      <constructor><parameter><inject bean="NamingJavaEEComponentInformer"/></parameter></constructor>
-   </bean>
+    <bean name="EJBBinderDeployer" class="org.jboss.ejb3.jndi.deployers.EJBBinderDeployer">
+        <constructor>
+            <parameter>
+                <inject bean="NamingJavaEEComponentInformer" />
+            </parameter>
+        </constructor>
+    </bean>
+
+    <!-- EJBBinder resolver -->
+    <bean name="org.jboss.ejb3.jndi.ScopedEJBBinderResolver"
+        class="org.jboss.ejb3.jndi.deployers.resolver.ScopedEJBBinderResolver">
+        <constructor>
+            <parameter>
+                <inject />
+            </parameter>
+        </constructor>
+    </bean>
+
+    <!-- Resource provider for ejb-local-ref reference -->
+    <bean name="org.jboss.switchboard.EJBLocalRefResourceProvider"
+        class="org.jboss.ejb3.jndi.deployers.resource.provider.EJBLocalRefResourceProvider">
+        <constructor>
+            <parameter>
+                <inject bean="org.jboss.ejb3.jndi.ScopedEJBBinderResolver" />
+            </parameter>
+        </constructor>
+    </bean>
+
+    <!-- Resource provider for ejb-ref reference -->
+    <bean name="org.jboss.switchboard.EJBRefResourceProvider"
+        class="org.jboss.ejb3.jndi.deployers.resource.provider.EJBRefResourceProvider">
+        <constructor>
+            <parameter>
+                <inject bean="org.jboss.ejb3.jndi.ScopedEJBBinderResolver" />
+            </parameter>
+        </constructor>
+    </bean>
+
+    <!-- Resource provider for annotated EJB reference -->
+    <bean name="org.jboss.switchboard.AnnotatedEJBRefResourceProvider"
+        class="org.jboss.ejb3.jndi.deployers.resource.provider.AnnotatedEJBRefResourceProvider">
+        <constructor>
+            <parameter>
+                <inject bean="org.jboss.ejb3.jndi.ScopedEJBBinderResolver" />
+            </parameter>
+        </constructor>
+    </bean>
+
+
 </deployment>
