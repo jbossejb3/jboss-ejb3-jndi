@@ -31,6 +31,7 @@ import java.util.Set;
 import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.jndi.deployers.EJBBinderIdentifierGenerator;
 import org.jboss.logging.Logger;
+import org.jboss.metadata.ear.jboss.JBossAppMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeansMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEntityBeanMetaData;
@@ -55,11 +56,11 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
     */
    private static Logger logger = Logger.getLogger(ScopedEJBBinderResolver.class);
    
-   private JavaEEComponentInformer informer;
+   private JavaEEComponentInformer componentInformer;
    
-   public ScopedEJBBinderResolver(JavaEEComponentInformer informer)
+   public ScopedEJBBinderResolver(JavaEEComponentInformer componentInformer)
    {
-      this.informer = informer;
+      this.componentInformer = componentInformer;
    }
 
 
@@ -218,9 +219,12 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
       // EJBBinder is only for session beans
       if (resolvedBeanMetaData.isSession())
       {
-         binderName = EJBBinderIdentifierGenerator.getEJBBinderName(this.informer, du, resolvedBeanMetaData.getEjbName());
+         binderName = EJBBinderIdentifierGenerator.getEJBBinderName(this.componentInformer, du, resolvedBeanMetaData.getEjbName());
       }
-      return new EJBBinderResolutionResult(binderName, jndiName);
+      
+      EJBBinderResolutionResult result = new EJBBinderResolutionResult(binderName, jndiName);
+      logger.debug("Resolved reference: " + reference + " to: " + result);
+      return result;
 
    }
 
@@ -390,19 +394,19 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
 
    protected String getApplicationName(DeploymentUnit unit)
    {
-      return this.informer.getApplicationName(unit);
+      return this.componentInformer.getApplicationName(unit);
    }
    
    protected String getModuleName(DeploymentUnit unit)
    {
-      return this.informer.getModuleName(unit);
+      return this.componentInformer.getModuleName(unit);
    }
    
    protected String getComponentName(DeploymentUnit unit)
    {
-      if (this.informer.isJavaEEComponent(unit))
+      if (this.componentInformer.isJavaEEComponent(unit))
       {
-         return this.informer.getComponentName(unit);
+         return this.componentInformer.getComponentName(unit);
       }
       return null;
    }
@@ -423,10 +427,13 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
    private String getGlobalJNDINameForSessionBean(DeploymentUnit unit, JBossSessionBeanMetaData sessionBean, String interfaceFQN)
    {
       StringBuilder globalJNDIName = new StringBuilder("java:global/");
-      String appName = this.getApplicationName(unit);
-      if(appName != null)
+      DeploymentUnit topLevelUnit = unit.isTopLevel() ? unit : unit.getTopLevel();
+      if (topLevelUnit.isAttachmentPresent(JBossAppMetaData.class))
       {
-         globalJNDIName.append(appName);
+         String earName = topLevelUnit.getSimpleName();
+         // strip .ear suffix
+         earName = earName.substring(0, earName.length() - 4);
+         globalJNDIName.append(earName);
          globalJNDIName.append("/");
       }
       String moduleName = this.getModuleName(unit);
