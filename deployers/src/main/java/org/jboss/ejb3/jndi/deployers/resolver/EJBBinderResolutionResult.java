@@ -49,4 +49,16 @@ public class EJBBinderResolutionResult
    {
       return this.binderName;
    }
+   
+   @Override
+   public String toString()
+   {
+      StringBuilder sb = new StringBuilder(this.getClass().getSimpleName());
+      sb.append("[jndiName=");
+      sb.append(this.jndiName);
+      sb.append(" binderName=");
+      sb.append(this.binderName);
+      sb.append("]");
+      return sb.toString();
+   }
 }
