@@ -11,11 +11,6 @@
 
     <name>JBoss EJB 3 JNDI Deployers</name>
 
-    <properties>
-        <org.jboss.deployers.version>2.2.0.M2</org.jboss.deployers.version>
-        <version.switchboard>1.0.0-alpha-8</version.switchboard>
-    </properties>
-
     <!-- Only API dependencies allowed -->
     <dependencies>
         <!--
@@ -26,31 +21,26 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>jboss-ejb3-jndi-binder</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.deployers</groupId>
             <artifactId>jboss-deployers-spi</artifactId>
-            <version>${org.jboss.deployers.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.kernel</groupId>
             <artifactId>jboss-kernel</artifactId>
-            <version>2.2.0.Alpha10</version>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.switchboard</groupId>
             <artifactId>jboss-switchboard-mc-spi</artifactId>
-            <version>${version.switchboard}</version>
         </dependency>
         
         <dependency>
             <groupId>org.jboss.switchboard</groupId>
             <artifactId>jboss-switchboard-javaee</artifactId>
-            <version>${version.switchboard}</version>
         </dependency>
         <!--
             <dependency> <groupId>org.jboss.logging</groupId>
@@ -62,20 +52,17 @@
         <dependency>
             <groupId>org.jboss.metadata</groupId>
             <artifactId>jboss-metadata-ejb</artifactId>
-            <version>2.0.0-alpha-18</version>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.metadata</groupId>
             <artifactId>jboss-metadata-ear</artifactId>
-            <version>2.0.0.Alpha4</version>
         </dependency>
         
 
         <dependency>
             <groupId>org.jboss.reloaded.naming</groupId>
             <artifactId>jboss-reloaded-naming-deployers</artifactId>
-            <version>${org.jboss.reloaded.naming.version}</version>
         </dependency>
 
         <!--

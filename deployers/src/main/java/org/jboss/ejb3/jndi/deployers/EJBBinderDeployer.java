@@ -21,6 +21,9 @@
  */
 package org.jboss.ejb3.jndi.deployers;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.jboss.beans.metadata.plugins.builder.BeanMetaDataBuilderFactory;
 import org.jboss.beans.metadata.spi.BeanMetaData;
 import org.jboss.beans.metadata.spi.builder.BeanMetaDataBuilder;
@@ -30,6 +33,7 @@ import org.jboss.ejb3.jndi.binder.EJBBinder;
 import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
 import org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper;
 import org.jboss.ejb3.jndi.deployers.proxy.LegacyProxyFactory;
+import org.jboss.ejb3.jndi.deployers.resolver.DependencyBuilder;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
 import org.jboss.reloaded.naming.deployers.javaee.JavaEEComponentInformer;
@@ -37,9 +41,12 @@ import org.jboss.reloaded.naming.spi.JavaEEComponent;
 
 /**
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
+ * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
  */
 public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
 {
+   private List<DependencyBuilder> builders = new CopyOnWriteArrayList<DependencyBuilder>();
+
    public EJBBinderDeployer(JavaEEComponentInformer informer)
    {
       super(informer);
@@ -81,19 +88,36 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
          unit.getParent().addAttachment(sessionBeanTypeName, builder.getBeanMetaData());
       }
 
-      {
-         String beanInstanceName = "jboss.ejb3:";
-         if(appName != null)
-            beanInstanceName += "application=" + appName + ",";
-         beanInstanceName += "module=" + moduleName + ",component=" + componentName + ",service=" + EJBBinder.class.getSimpleName();
-         BeanMetaDataBuilder builder = BeanMetaDataBuilderFactory.createBuilder(beanInstanceName, EJBBinder.class.getName());
-         builder.addConstructorParameter(SessionBeanType.class.getName(), builder.createInject(sessionBeanTypeName));
-         builder.addPropertyMetaData("globalContext", builder.createInject("NameSpaces", "globalContext"));
-         builder.addPropertyMetaData("proxyFactory", new LegacyProxyFactory());
-         builder.setStart("bind");
-         builder.setStop("unbind");
+      String beanInstanceName = "jboss.ejb3:";
+      if (appName != null)
+         beanInstanceName += "application=" + appName + ",";
+      beanInstanceName += "module=" + moduleName + ",component=" + componentName + ",service=" + EJBBinder.class.getSimpleName();
+      BeanMetaDataBuilder builder = BeanMetaDataBuilderFactory.createBuilder(beanInstanceName, EJBBinder.class.getName());
+      builder.addConstructorParameter(SessionBeanType.class.getName(), builder.createInject(sessionBeanTypeName));
+      builder.addPropertyMetaData("globalContext", builder.createInject("NameSpaces", "globalContext"));
+      builder.addPropertyMetaData("proxyFactory", new LegacyProxyFactory());
+      builder.setStart("bind");
+      builder.setStop("unbind");
 
-         unit.getParent().addAttachment(beanInstanceName, builder.getBeanMetaData());
-      }
+      for (DependencyBuilder db : builders)
+         db.buildDependency(unit, builder);
+
+      unit.getParent().addAttachment(beanInstanceName, builder.getBeanMetaData());
+   }
+
+   public void addDependencyBuilder(DependencyBuilder builder)
+   {
+      if (builder == null)
+         throw new IllegalArgumentException("Null builder");
+
+      builders.add(builder);
+   }   
+
+   public void removeDependencyBuilder(DependencyBuilder builder)
+   {
+      if (builder == null)
+         throw new IllegalArgumentException("Null builder");
+
+      builders.remove(builder);
    }
 }

@@ -21,12 +21,12 @@
  */
 package org.jboss.ejb3.jndi.binder;
 
+import javax.naming.Context;
+import javax.naming.NamingException;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-
-import javax.naming.Context;
-import javax.naming.NamingException;
 
 import org.jboss.ejb3.jndi.binder.impl.View;
 import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
@@ -99,6 +99,7 @@ public class EJBBinder
       }
    }
 
+   @SuppressWarnings({"deprecation"})
    protected void bind(Context ctx, String name, Object obj) throws NamingException
    {
       if(log.isDebugEnabled())
@@ -145,16 +146,21 @@ public class EJBBinder
    }
 
    /**
+    * Get app jndi name.
+    *
+    * @param businessInterface the business interface
     * @return the name within the app name space
     */
    protected String getAppJNDIName(Class<?> businessInterface)
    {
       JavaEEModule module = bean.getModule();
-      String name = module.getName() + "/" + getModuleJNDIName(businessInterface);
-      return name;
+      return module.getName() + "/" + getModuleJNDIName(businessInterface);
    }
 
    /**
+    * Get global jndi name.
+    *
+    * @param businessInterface the business interface
     * @return the name within the global name space.
     */
    protected String getGlobalJNDIName(Class<?> businessInterface)
@@ -163,17 +169,18 @@ public class EJBBinder
       JavaEEApplication app = module.getApplication();
       // EJB 3.1 4.4.1 <app-name> only applies if the session bean is packaged within an .ear file.
       String appName = app.isEnterpriseApplicationArchive() ? app.getName() : null;
-      String name = (appName != null ? appName + "/" : "") + getAppJNDIName(businessInterface);
-      return name;
+      return (appName != null ? appName + "/" : "") + getAppJNDIName(businessInterface);
    }
 
    /**
+    * Get module jndi name.
+    *
+    * @param businessInterface the business interface
     * @return the name within the module name space.
     */
    protected String getModuleJNDIName(Class<?> businessInterface)
    {
-      String name = bean.getName() + (businessInterface != null ? "!" + businessInterface.getName() : "");
-      return name;
+      return bean.getName() + (businessInterface != null ? "!" + businessInterface.getName() : "");
    }
 
    public void setGlobalContext(Context context)
@@ -232,14 +239,10 @@ public class EJBBinder
    
    /**
     * Returns true if the bean exposes just 1 view to the client. Else returns false
-    * @return
+    * @return true if there is a single view, false otherwise
     */
    protected boolean hasSingleView()
    {
-      if (this.views != null && this.views.size() == 1)
-      {
-         return true;
-      }
-      return false;
+      return this.views != null && this.views.size() == 1;
    }
 }
