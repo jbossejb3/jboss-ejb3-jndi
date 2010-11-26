@@ -57,13 +57,24 @@ public class LazyProxyFactory implements ProxyFactory
       SessionBeanTypeWrapper beanType = (SessionBeanTypeWrapper) view.getMetadata();
       String className = view.getBusinessInterface().getName();
       String linkName = nameResolver.resolveJNDIName(beanType.getSessionBeanMetaData(), className);
-      // Setup the reference
+      return lazyLink(className, linkName);
+   }
+
+   /**
+    * Create a lazy ref.
+    *
+    * @param className the classname
+    * @param linkName the link name
+    * @return lazy link ref
+    */
+   public Object lazyLink(String className, String linkName)
+   {
       String factory = LazyObjectFactory.class.getName();
       RefAddr addr = new StringRefAddr("link", linkName);
       return new Reference(className, addr, factory, null);
    }
 
-   private static class LazyObjectFactory implements ObjectFactory
+   public static class LazyObjectFactory implements ObjectFactory
    {
       public Object getObjectInstance(Object obj, Name name, Context context, Hashtable<?, ?> hashtable) throws Exception
       {
@@ -86,7 +97,7 @@ public class LazyProxyFactory implements ProxyFactory
          else
             factory.setSuperclass(clazz);
          Class<?> proxyClass = getProxyClass(factory);
-         ProxyObject proxy = (ProxyObject)proxyClass.newInstance();
+         ProxyObject proxy = (ProxyObject) proxyClass.newInstance();
          proxy.setHandler(new LazyHandler(link, context));
          return proxy;
       }
@@ -115,6 +126,28 @@ public class LazyProxyFactory implements ProxyFactory
     */
    public static class LazyHandler implements MethodHandler
    {
+      private static final Method METHOD_EQUALS;
+      private static final Method METHOD_HASH_CODE;
+      private static final Method METHOD_TO_STRING;
+
+      static
+      {
+         try
+         {
+            METHOD_EQUALS = Object.class.getDeclaredMethod("equals", Object.class);
+            METHOD_HASH_CODE = Object.class.getDeclaredMethod("hashCode");
+            METHOD_TO_STRING = Object.class.getDeclaredMethod("toString");
+         }
+         catch (SecurityException e)
+         {
+            throw new RuntimeException(e);
+         }
+         catch (NoSuchMethodException e)
+         {
+            throw new RuntimeException(e);
+         }
+      }
+
       private String link;
       private Context context;
       private Object target;
@@ -125,12 +158,19 @@ public class LazyProxyFactory implements ProxyFactory
          this.context = context;
       }
 
-      public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable
+      public Object invoke(Object self, Method method, Method proceed, Object[] args) throws Throwable
       {
+         if (method.equals(METHOD_TO_STRING))
+            return "JNDI-link: " + link;
+         else if (method.equals(METHOD_EQUALS))
+            return equals(args[0]);
+         else if (method.equals(METHOD_HASH_CODE))
+            return hashCode();
+
          if (target == null)
             target = context.lookup(link);
 
-         return thisMethod.invoke(target, args);
+         return method.invoke(target, args);
       }
    }
 
