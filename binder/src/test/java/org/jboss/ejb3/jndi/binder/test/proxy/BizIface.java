@@ -20,19 +20,12 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.ejb3.jndi.deployers.test.proxy;
-
-import java.io.Serializable;
+package org.jboss.ejb3.jndi.binder.test.proxy;
 
 /**
  * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
  */
-public class BizIfaceImpl implements BizIface, Serializable
+public interface BizIface
 {
-   private static final long serialVersionUID = 1L;
-   
-   public int calculate(int x)
-   {
-      return 10 * x;
-   }
+   int calculate(int x);
 }

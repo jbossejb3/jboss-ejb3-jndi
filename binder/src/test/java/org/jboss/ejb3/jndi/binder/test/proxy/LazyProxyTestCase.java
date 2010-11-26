@@ -20,23 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.ejb3.jndi.deployers.test.proxy;
+package org.jboss.ejb3.jndi.binder.test.proxy;
 
 import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.naming.Reference;
 
-import java.util.Hashtable;
+import org.jboss.ejb3.jndi.binder.impl.AbstractLazyProxyFactory;
+import org.jboss.ejb3.jndi.binder.test.common.AbstractNamingTestCase;
 
-import org.jboss.ejb3.jndi.deployers.proxy.LazyProxyFactory;
-import org.jboss.reloaded.naming.service.NameSpaces;
-
-import org.jnp.interfaces.NamingContext;
-import org.jnp.server.NamingServer;
-import org.jnp.server.SingletonNamingServer;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -44,65 +36,39 @@ import org.junit.Test;
  *
  * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
  */
-public class LazyProxyTestCase
+public class LazyProxyTestCase extends AbstractNamingTestCase
 {
-   private static SingletonNamingServer server;
-   private static NameSpaces ns;
-   protected static InitialContext iniCtx;
-
-   @BeforeClass
-   public static void beforeClass() throws NamingException
-   {
-      server = new SingletonNamingServer();
-
-      ns = new NameSpaces();
-      ns.start();
-
-      iniCtx = new InitialContext();
-   }
-
-   protected static Context createContext() throws NamingException
-   {
-      return createContext(iniCtx.getEnvironment());
-   }
-
-   protected static Context createContext(Hashtable<?, ?> environment) throws NamingException
-   {
-      NamingServer srv = new NamingServer();
-      return new NamingContext(environment, null, srv);
-   }
-
-   @AfterClass
-   public static void afterClass() throws NamingException
-   {
-      iniCtx.close();
-
-      ns.stop();
-
-      server.destroy();
-   }
-
    @Test
    public void testBasicUsage() throws Exception
    {
-      LazyProxyFactory factory = new LazyProxyFactory();
+      AbstractLazyProxyFactory factory = new DummyLazyProxyFactory();
       Context context = createContext();
 
       // old bind
-      context.bind("old-test", new BizIfaceImpl());
+      Reference ref = new Reference(BizIfaceImpl.class.getName(), TrackingOF.class.getName(), null);
+      context.bind("old-test", ref);
 
       // test interface
-      context.bind("new-test", factory.lazyLink(BizIface.class.getName(), "old-test"));
+      context.bind("new-test", factory.lazyLinkRef(BizIface.class.getName(), "old-test"));
+      Assert.assertFalse(TrackingOF.hit);
       Object object = context.lookup("new-test");
       Assert.assertTrue(object instanceof BizIface);
       BizIface bi = (BizIface) object;
+      Assert.assertFalse(TrackingOF.hit);
       Assert.assertEquals(20, bi.calculate(2));
+      Assert.assertTrue(TrackingOF.hit);
+
+      TrackingOF.hit = false;
 
       // test impl
-      context.bind("impl-test", factory.lazyLink(BizIfaceImpl.class.getName(), "old-test"));
+      context.bind("impl-test", factory.lazyLinkRef(BizIfaceImpl.class.getName(), "old-test"));
+      Assert.assertFalse(TrackingOF.hit);
       object = context.lookup("impl-test");
+      Assert.assertFalse(TrackingOF.hit);
       Assert.assertTrue(object instanceof BizIfaceImpl);
       BizIfaceImpl bii = (BizIfaceImpl) object;
+      Assert.assertFalse(TrackingOF.hit);
       Assert.assertEquals(30, bii.calculate(3));
+      Assert.assertTrue(TrackingOF.hit);
    }
 }

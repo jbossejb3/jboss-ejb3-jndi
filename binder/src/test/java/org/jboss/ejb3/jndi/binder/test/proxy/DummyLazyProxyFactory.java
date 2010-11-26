@@ -20,12 +20,18 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.ejb3.jndi.deployers.test.proxy;
+package org.jboss.ejb3.jndi.binder.test.proxy;
+
+import org.jboss.ejb3.jndi.binder.impl.AbstractLazyProxyFactory;
+import org.jboss.ejb3.jndi.binder.impl.View;
 
 /**
  * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
  */
-public interface BizIface
+class DummyLazyProxyFactory extends AbstractLazyProxyFactory
 {
-   int calculate(int x);
+   public Object produce(View view)
+   {
+      return null;
+   }
 }
