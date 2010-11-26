@@ -76,6 +76,11 @@
             <artifactId>jboss-reloaded-naming-spi</artifactId>
         </dependency>
 
+       <dependency>
+          <groupId>javassist</groupId>
+          <artifactId>javassist</artifactId>
+       </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>

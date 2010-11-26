@@ -32,7 +32,7 @@ import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.jndi.binder.EJBBinder;
 import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
 import org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper;
-import org.jboss.ejb3.jndi.deployers.proxy.LegacyProxyFactory;
+import org.jboss.ejb3.jndi.deployers.proxy.LazyProxyFactory;
 import org.jboss.ejb3.jndi.deployers.resolver.DependencyBuilder;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
@@ -95,7 +95,7 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
       BeanMetaDataBuilder builder = BeanMetaDataBuilderFactory.createBuilder(beanInstanceName, EJBBinder.class.getName());
       builder.addConstructorParameter(SessionBeanType.class.getName(), builder.createInject(sessionBeanTypeName));
       builder.addPropertyMetaData("globalContext", builder.createInject("NameSpaces", "globalContext"));
-      builder.addPropertyMetaData("proxyFactory", new LegacyProxyFactory());
+      builder.addPropertyMetaData("proxyFactory", new LazyProxyFactory());
       builder.setStart("bind");
       builder.setStop("unbind");
 
