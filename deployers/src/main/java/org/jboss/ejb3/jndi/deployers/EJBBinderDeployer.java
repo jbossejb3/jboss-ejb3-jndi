@@ -99,7 +99,8 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
       BeanMetaDataBuilder builder = BeanMetaDataBuilderFactory.createBuilder(beanInstanceName, EJBBinder.class.getName());
       builder.addConstructorParameter(SessionBeanType.class.getName(), builder.createInject(sessionBeanTypeName));
       builder.addPropertyMetaData("globalContext", builder.createInject("NameSpaces", "globalContext"));
-      builder.addPropertyMetaData("proxyFactory", sessionBeanMetaData.isStateless() ? lazy : legacy);
+//      builder.addPropertyMetaData("proxyFactory", sessionBeanMetaData.isStateless() ? lazy : legacy);
+      builder.addPropertyMetaData("proxyFactory", legacy);
       builder.setStart("bind");
       builder.setStop("unbind");
 

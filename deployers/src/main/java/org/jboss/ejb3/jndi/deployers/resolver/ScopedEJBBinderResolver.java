@@ -32,6 +32,8 @@ import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.jndi.deployers.EJBBinderIdentifierGenerator;
 import org.jboss.logging.Logger;
 import org.jboss.metadata.ear.jboss.JBossAppMetaData;
+import org.jboss.metadata.ejb.jboss.InvokerBindingMetaData;
+import org.jboss.metadata.ejb.jboss.InvokerBindingsMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeansMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEntityBeanMetaData;
@@ -452,11 +454,19 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
 
    private String getJNDINameForEntityBean(DeploymentUnit unit, JBossEntityBeanMetaData entityBean, String interfaceFQN)
    {
-      if (interfaceFQN == null || interfaceFQN.trim().isEmpty())
+      InvokerBindingsMetaData invokerBindings = entityBean.determineInvokerBindings();
+      if (invokerBindings == null || invokerBindings.isEmpty())
       {
-         return entityBean.determineJndiName();
+         return entityBean.getJndiName();
       }
-      return entityBean.determineResolvedJndiName(interfaceFQN);
+      
+      InvokerBindingMetaData invokerBinding = invokerBindings.iterator().next();
+      String jndiName = invokerBinding.getJndiName();
+      if(jndiName == null || jndiName.isEmpty())
+      {
+         jndiName = entityBean.getJndiName();
+      }
+      return jndiName;
    }
    /**
     * Returns true if the passed session bean metadata represents a EJB3.1 bean

@@ -24,6 +24,9 @@ package org.jboss.ejb3.jndi.deployers.proxy;
 import org.jboss.ejb3.jndi.binder.impl.View;
 import org.jboss.ejb3.jndi.binder.spi.ProxyFactory;
 import org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper;
+import org.jboss.metadata.ejb.jboss.InvokerBindingMetaData;
+import org.jboss.metadata.ejb.jboss.InvokerBindingsMetaData;
+import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
 import org.jboss.metadata.ejb.jboss.jndi.resolver.impl.JNDIPolicyBasedSessionBean31JNDINameResolver;
 
 import javax.naming.LinkRef;
@@ -39,7 +42,36 @@ public class LegacyProxyFactory implements ProxyFactory
    public Object produce(View view)
    {
       SessionBeanTypeWrapper beanType = (SessionBeanTypeWrapper) view.getMetadata();
-      String linkName = nameResolver.resolveJNDIName(beanType.getSessionBeanMetaData(), view.getBusinessInterface().getName());
-      return new LinkRef(linkName);
+      JBossSessionBeanMetaData sessionBean = beanType.getSessionBeanMetaData();
+      if (!sessionBean.getJBossMetaData().isEJB3x())
+      {
+         String jndiName = this.getJNDINameForEjb2xSessionBean(sessionBean, view);
+         return new LinkRef(jndiName);
+      }
+      String jndiName = nameResolver.resolveJNDIName(sessionBean, view.getBusinessInterface().getName());
+      return new LinkRef(jndiName);
+   }
+   
+   private String getJNDINameForEjb2xSessionBean(JBossSessionBeanMetaData sessionBean, View view)
+   {
+      View.Type viewType = view.getType();
+      if (viewType == View.Type.LOCAL_HOME)
+      {
+         return sessionBean.determineLocalJndiName();
+      }
+      
+      InvokerBindingsMetaData invokerBindings = sessionBean.determineInvokerBindings();
+      if (invokerBindings == null || invokerBindings.isEmpty())
+      {
+         return sessionBean.determineJndiName();
+      }
+      
+      InvokerBindingMetaData invokerBinding = invokerBindings.iterator().next();
+      String jndiName = invokerBinding.getJndiName();
+      if(jndiName == null || jndiName.isEmpty())
+      {
+         jndiName = sessionBean.determineJndiName();
+      }
+      return jndiName;
    }
 }

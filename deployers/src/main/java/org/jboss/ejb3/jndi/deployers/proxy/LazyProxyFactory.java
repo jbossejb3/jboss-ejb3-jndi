@@ -24,6 +24,9 @@ package org.jboss.ejb3.jndi.deployers.proxy;
 import org.jboss.ejb3.jndi.binder.impl.AbstractLazyProxyFactory;
 import org.jboss.ejb3.jndi.binder.impl.View;
 import org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper;
+import org.jboss.metadata.ejb.jboss.InvokerBindingMetaData;
+import org.jboss.metadata.ejb.jboss.InvokerBindingsMetaData;
+import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
 import org.jboss.metadata.ejb.jboss.jndi.resolver.impl.JNDIPolicyBasedSessionBean31JNDINameResolver;
 
 /**
@@ -40,7 +43,39 @@ public class LazyProxyFactory extends AbstractLazyProxyFactory
    {
       SessionBeanTypeWrapper beanType = (SessionBeanTypeWrapper) view.getMetadata();
       String className = view.getBusinessInterface().getName();
-      String linkName = nameResolver.resolveJNDIName(beanType.getSessionBeanMetaData(), className);
+      String linkName = null;
+      JBossSessionBeanMetaData sessionBean = beanType.getSessionBeanMetaData();
+      if (!sessionBean.getJBossMetaData().isEJB3x())
+      {
+         linkName = this.getJNDINameForEjb2xSessionBean(sessionBean, view);
+      }
+      else
+      {
+         linkName = nameResolver.resolveJNDIName(sessionBean, className);
+      }
       return lazyLinkRef(className, linkName);
+   }
+   
+   private String getJNDINameForEjb2xSessionBean(JBossSessionBeanMetaData sessionBean, View view)
+   {
+      View.Type viewType = view.getType();
+      if (viewType == View.Type.LOCAL_HOME)
+      {
+         return sessionBean.determineLocalJndiName();
+      }
+      
+      InvokerBindingsMetaData invokerBindings = sessionBean.determineInvokerBindings();
+      if (invokerBindings == null || invokerBindings.isEmpty())
+      {
+         return sessionBean.determineJndiName();
+      }
+      
+      InvokerBindingMetaData invokerBinding = invokerBindings.iterator().next();
+      String jndiName = invokerBinding.getJndiName();
+      if(jndiName == null || jndiName.isEmpty())
+      {
+         jndiName = sessionBean.determineJndiName();
+      }
+      return jndiName;
    }
 }
