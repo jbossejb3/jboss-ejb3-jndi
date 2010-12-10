@@ -56,13 +56,21 @@ public class EJBRefResource implements Resource
    private Object ejbBinderName;
    
    /**
+    * The dependency which needs to be resolved before this {@link EJBRefResource} can be 
+    * looked up or invoked upon
+    */
+   private Object invocationDependency;
+   
+   /**
     * Creates a {@link EJBRefResource}
     * @param ejbJndiName The target jndi name 
     * @param binderName The (optional) MC bean name of the {@link EJBBinder}
+    * @param invocationDependency The dependency which needs to be resolved before this {@link EJBRefResource} can be 
+    *                           looked up or invoked upon
     * 
     * @throws IllegalArgumentException If <code>ejbJndiName</code> is null or an empty string
     */
-   public EJBRefResource(String ejbJndiName, String binderName)
+   public EJBRefResource(String ejbJndiName, String binderName, Object invocationDependency)
    {
       if (ejbJndiName == null || ejbJndiName.trim().isEmpty())
       {
@@ -70,6 +78,7 @@ public class EJBRefResource implements Resource
       }
       this.linkRef = new LinkRef(ejbJndiName);
       this.ejbBinderName = binderName;
+      this.invocationDependency = invocationDependency;
    }
 
    /**
@@ -90,6 +99,12 @@ public class EJBRefResource implements Resource
       return this.linkRef;
    }
 
+   @Override
+   public Object getInvocationDependency()
+   {
+      return this.invocationDependency;
+   }
+   
    @Override
    public String toString()
    { 

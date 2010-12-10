@@ -21,6 +21,8 @@
  */
 package org.jboss.ejb3.jndi.deployers.resolver;
 
+import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
+
 /**
  * EJBResolution
  *
@@ -34,10 +36,13 @@ public class EJBBinderResolutionResult
    
    private String binderName;
    
-   public EJBBinderResolutionResult(String binderName, String ejbJNDIName)
+   private JBossEnterpriseBeanMetaData beanMetadata;
+   
+   public EJBBinderResolutionResult(String binderName, String ejbJNDIName, JBossEnterpriseBeanMetaData beanMetadata)
    {
       this.binderName = binderName;
       this.jndiName = ejbJNDIName;
+      this.beanMetadata = beanMetadata;
    }
    
    public String getJNDIName()
@@ -48,6 +53,11 @@ public class EJBBinderResolutionResult
    public String getEJBBinderName()
    {
       return this.binderName;
+   }
+   
+   public JBossEnterpriseBeanMetaData getBeanMetadata()
+   {
+      return this.beanMetadata;
    }
    
    @Override

@@ -160,7 +160,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
       return null;
    }
 
-   protected EJBBinderResolutionResult findBinder(DeploymentUnit du, EJBReference reference)
+   private EJBBinderResolutionResult findBinder(DeploymentUnit du, EJBReference reference)
    {
       // TODO: It's a bit too much to add an dependency on jboss-ejb3-common just for this constant attachment name.
       // So this hardcoding. 
@@ -224,7 +224,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
          binderName = EJBBinderIdentifierGenerator.getEJBBinderName(this.componentInformer, du, resolvedBeanMetaData.getEjbName());
       }
       
-      EJBBinderResolutionResult result = new EJBBinderResolutionResult(binderName, jndiName);
+      EJBBinderResolutionResult result = new EJBBinderResolutionResult(binderName, jndiName, resolvedBeanMetaData);
       logger.debug("Resolved reference: " + reference + " to: " + result);
       return result;
 
@@ -239,7 +239,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
     * @param cl The ClassLoader for the specified metadata
     * @return
     */
-   protected String getMatchingInterface(EJBReference reference, JBossEnterpriseBeanMetaData beanMetaData, DeploymentUnit unit)
+   private String getMatchingInterface(EJBReference reference, JBossEnterpriseBeanMetaData beanMetaData, DeploymentUnit unit)
    {
       // We only work with Session beans and (EJB2.x) entity beans.
       // If it's neither a session bean nor an entity bean, then just return
@@ -301,7 +301,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
       
    }
 
-   protected Set<Class<?>> getExposedInterfaces(JBossEnterpriseBeanMetaData enterpriseBean, ClassLoader cl)
+   private Set<Class<?>> getExposedInterfaces(JBossEnterpriseBeanMetaData enterpriseBean, ClassLoader cl)
    {
       if (enterpriseBean.isSession() && (enterpriseBean instanceof JBossSessionBeanMetaData))
       {
@@ -315,7 +315,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
       return new HashSet<Class<?>>();
    }
 
-   protected Set<Class<?>> getSessionBeanExposedInterfaces(JBossSessionBeanMetaData smd, ClassLoader cl)
+   private Set<Class<?>> getSessionBeanExposedInterfaces(JBossSessionBeanMetaData smd, ClassLoader cl)
    {
       Set<Class<?>> interfaces = new HashSet<Class<?>>();
 
@@ -394,26 +394,12 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
    }
 
 
-   protected String getApplicationName(DeploymentUnit unit)
-   {
-      return this.componentInformer.getApplicationName(unit);
-   }
-   
-   protected String getModuleName(DeploymentUnit unit)
+   private String getModuleName(DeploymentUnit unit)
    {
       return this.componentInformer.getModuleName(unit);
    }
    
-   protected String getComponentName(DeploymentUnit unit)
-   {
-      if (this.componentInformer.isJavaEEComponent(unit))
-      {
-         return this.componentInformer.getComponentName(unit);
-      }
-      return null;
-   }
-
-   protected String getJNDIName(DeploymentUnit unit, JBossEnterpriseBeanMetaData beanMetaData, String interfaceFQN)
+   private String getJNDIName(DeploymentUnit unit, JBossEnterpriseBeanMetaData beanMetaData, String interfaceFQN)
    {
       if (beanMetaData.isSession() && (beanMetaData instanceof JBossSessionBeanMetaData))
       {
@@ -475,7 +461,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
     * @param beanMetaData Session bean metadata
     * @return
     */
-   protected boolean hasNoInterfaceView(JBossEnterpriseBeanMetaData beanMetaData)
+   private boolean hasNoInterfaceView(JBossEnterpriseBeanMetaData beanMetaData)
    {
       if (!beanMetaData.isSession() || !(beanMetaData instanceof JBossSessionBeanMetaData))
       {
@@ -499,13 +485,13 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
     * @param smd Session bean metadata
     * @return
     */
-   protected boolean isEJB31(JBossSessionBeanMetaData smd)
+   private boolean isEJB31(JBossSessionBeanMetaData smd)
    {
       JBossMetaData jbossMetaData = smd.getJBossMetaData();
       return jbossMetaData.isEJB31();
    }
 
-   protected boolean acceptsEjbName(JBossEnterpriseBeanMetaData beanMetaData, EJBReference reference, DeploymentUnit du)
+   private boolean acceptsEjbName(JBossEnterpriseBeanMetaData beanMetaData, EJBReference reference, DeploymentUnit du)
    {
       // the requested bean interface matches the nointerface view bean class name
       // Now let's see if there's an explicit bean name specified. If such an 
@@ -569,7 +555,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
       return ejbLink.equals(beanMetaData.getEjbName());
    }
 
-   protected DeploymentUnit getRelativeDeploymentUnit(DeploymentUnit current, String path)
+   private DeploymentUnit getRelativeDeploymentUnit(DeploymentUnit current, String path)
    {
       String relativePathFromTopLevelDU = current.getRelativePath();
       if (relativePathFromTopLevelDU.isEmpty())
