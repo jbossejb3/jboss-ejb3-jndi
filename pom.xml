@@ -24,7 +24,7 @@
       <version.org.jboss.kernel>2.2.0.Alpha10</version.org.jboss.kernel>
       <version.org.jboss.deployers>2.2.0.Alpha8</version.org.jboss.deployers>
       <version.org.jboss.reloaded.naming>0.2.0</version.org.jboss.reloaded.naming>
-      <version.switchboard>1.0.0-alpha-14-SNAPSHOT</version.switchboard>
+      <version.switchboard>1.0.0-alpha-14</version.switchboard>
       <version.metadata.ear>2.0.0.Alpha4</version.metadata.ear>
       <version.metadata.ejb>2.0.0-alpha-18</version.metadata.ejb>
       <version.javassist>3.12.1.GA</version.javassist>
