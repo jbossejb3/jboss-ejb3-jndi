@@ -38,11 +38,14 @@ public class EJBBinderResolutionResult
    
    private JBossEnterpriseBeanMetaData beanMetadata;
    
-   public EJBBinderResolutionResult(String binderName, String ejbJNDIName, JBossEnterpriseBeanMetaData beanMetadata)
+   private String resolvedBusinessInterface;
+   
+   public EJBBinderResolutionResult(String binderName, String ejbJndiName, JBossEnterpriseBeanMetaData beanMetadata, String resolvedBusinessInterface)
    {
       this.binderName = binderName;
-      this.jndiName = ejbJNDIName;
+      this.jndiName = ejbJndiName;
       this.beanMetadata = beanMetadata;
+      this.resolvedBusinessInterface = resolvedBusinessInterface;
    }
    
    public String getJNDIName()
@@ -60,14 +63,21 @@ public class EJBBinderResolutionResult
       return this.beanMetadata;
    }
    
+   public String getResolvedBusinessInterface()
+   {
+      return this.resolvedBusinessInterface;
+   }
+   
    @Override
    public String toString()
    {
       StringBuilder sb = new StringBuilder(this.getClass().getSimpleName());
       sb.append("[jndiName=");
       sb.append(this.jndiName);
-      sb.append(" binderName=");
+      sb.append(" ,binderName=");
       sb.append(this.binderName);
+      sb.append(" ,resolvedBusinessInterface=");
+      sb.append(this.resolvedBusinessInterface);
       sb.append("]");
       return sb.toString();
    }

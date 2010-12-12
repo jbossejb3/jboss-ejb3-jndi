@@ -21,6 +21,8 @@
  */
 package org.jboss.ejb3.jndi.deployers.resource.provider;
 
+import java.util.Collection;
+
 import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.jndi.binder.EJBBinder;
 import org.jboss.ejb3.jndi.deployers.resolver.EJBBinderResolutionResult;
@@ -42,21 +44,16 @@ import org.jboss.switchboard.spi.Resource;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class EJBLocalRefResourceProvider implements MCBasedResourceProvider<JBossEjbLocalRefType>
+public class EJBLocalRefResourceProvider extends AbstractEJBResourceProvider implements MCBasedResourceProvider<JBossEjbLocalRefType>
 {
 
-   /**
-    * EJB Binder resolver
-    */
-   private EJBBinderResolver ejbBinderResolver;
-   
    /**
     * 
     * @param ejbBinderResolver
     */
    public EJBLocalRefResourceProvider(EJBBinderResolver ejbBinderResolver)
    {
-      this.ejbBinderResolver = ejbBinderResolver;
+      super(ejbBinderResolver);
    }
 
    /**
@@ -87,30 +84,15 @@ public class EJBLocalRefResourceProvider implements MCBasedResourceProvider<JBos
    @Override
    public Resource provide(DeploymentUnit unit, JBossEjbLocalRefType ejbLocalRef)
    {
-      // first check lookup name
-      String lookupName = ejbLocalRef.getLookupName();
-      if (lookupName != null && !lookupName.trim().isEmpty())
+      Resource resource = this.provideJndiNameBasedResource(unit, ejbLocalRef);
+      if (resource != null)
       {
-         return new LinkRefResource(lookupName, true);
-      }
-
-      // now check mapped name
-      String mappedName = ejbLocalRef.getMappedName();
-      if (mappedName != null && !mappedName.trim().isEmpty())
-      {
-         return new LinkRefResource(mappedName, true);
-      }
-      
-      // now check (JBoss specific) jndi name!
-      String jndiName = ejbLocalRef.getJNDIName();
-      if (jndiName != null && !jndiName.trim().isEmpty())
-      {
-         return new LinkRefResource(jndiName, true);
+         return resource;
       }
       // get the bean interface type
       String beanInterface = this.getBeanInterfaceType(unit.getClassLoader(), ejbLocalRef);
       // create a EJB reference
-      EJBReference ejbReference = new EJBReference(unit, ejbLocalRef.getLink(), beanInterface, mappedName, lookupName);
+      EJBReference ejbReference = new EJBReference(unit, ejbLocalRef.getLink(), beanInterface, ejbLocalRef.getMappedName(), ejbLocalRef.getLookupName());
       // resolve 
       EJBBinderResolutionResult result = this.ejbBinderResolver.resolveEJBBinder(unit, ejbReference);
       // throw an error, if we couldn't resolve the reference
@@ -122,10 +104,13 @@ public class EJBLocalRefResourceProvider implements MCBasedResourceProvider<JBos
       // cases, just create a LinkRefResource for the resolved jndi name
       if (result.getEJBBinderName() == null)
       {
-         return new LinkRefResource(result.getJNDIName(), true);
+         return new LinkRefResource(result.getJNDIName(), null, true);
       }
+      // get the invocation dependencies 
+      Collection<?> invocationDependencies = this.getInvocationDependencies(result);
       // return the resource
-      return new EJBRefResource(result.getJNDIName(), result.getEJBBinderName(), result.getBeanMetadata().getContainerName());
+      return new EJBRefResource(result.getJNDIName(), result.getEJBBinderName(), invocationDependencies);
+
    }
 
    /**

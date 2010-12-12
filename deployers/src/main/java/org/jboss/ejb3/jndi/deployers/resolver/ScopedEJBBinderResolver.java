@@ -224,7 +224,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
          binderName = EJBBinderIdentifierGenerator.getEJBBinderName(this.componentInformer, du, resolvedBeanMetaData.getEjbName());
       }
       
-      EJBBinderResolutionResult result = new EJBBinderResolutionResult(binderName, jndiName, resolvedBeanMetaData);
+      EJBBinderResolutionResult result = new EJBBinderResolutionResult(binderName, jndiName, resolvedBeanMetaData, resolvedInterface);
       logger.debug("Resolved reference: " + reference + " to: " + result);
       return result;
 

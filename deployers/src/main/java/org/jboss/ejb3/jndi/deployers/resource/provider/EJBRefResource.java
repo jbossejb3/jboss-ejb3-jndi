@@ -21,6 +21,8 @@
  */
 package org.jboss.ejb3.jndi.deployers.resource.provider;
 
+import java.util.Collection;
+
 import javax.naming.LinkRef;
 
 import org.jboss.ejb3.jndi.binder.EJBBinder;
@@ -56,21 +58,21 @@ public class EJBRefResource implements Resource
    private Object ejbBinderName;
    
    /**
-    * The dependency which needs to be resolved before this {@link EJBRefResource} can be 
+    * The dependencies which have to be resolved before this {@link EJBRefResource} can be 
     * looked up or invoked upon
     */
-   private Object invocationDependency;
+   private Collection<?> invocationDependencies;
    
    /**
     * Creates a {@link EJBRefResource}
     * @param ejbJndiName The target jndi name 
     * @param binderName The (optional) MC bean name of the {@link EJBBinder}
-    * @param invocationDependency The dependency which needs to be resolved before this {@link EJBRefResource} can be 
+    * @param invocationDependencies The dependencies which have to be resolved before this {@link EJBRefResource} can be 
     *                           looked up or invoked upon
     * 
     * @throws IllegalArgumentException If <code>ejbJndiName</code> is null or an empty string
     */
-   public EJBRefResource(String ejbJndiName, String binderName, Object invocationDependency)
+   public EJBRefResource(String ejbJndiName, String binderName, Collection<?> invocationDependencies)
    {
       if (ejbJndiName == null || ejbJndiName.trim().isEmpty())
       {
@@ -78,7 +80,7 @@ public class EJBRefResource implements Resource
       }
       this.linkRef = new LinkRef(ejbJndiName);
       this.ejbBinderName = binderName;
-      this.invocationDependency = invocationDependency;
+      this.invocationDependencies = invocationDependencies;
    }
 
    /**
@@ -100,9 +102,9 @@ public class EJBRefResource implements Resource
    }
 
    @Override
-   public Object getInvocationDependency()
+   public Collection<?> getInvocationDependencies()
    {
-      return this.invocationDependency;
+      return this.invocationDependencies;
    }
    
    @Override

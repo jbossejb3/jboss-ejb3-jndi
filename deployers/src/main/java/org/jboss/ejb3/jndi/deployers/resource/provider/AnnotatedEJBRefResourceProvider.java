@@ -21,6 +21,8 @@
  */
 package org.jboss.ejb3.jndi.deployers.resource.provider;
 
+import java.util.Collection;
+
 import javax.ejb.EJB;
 
 import org.jboss.deployers.structure.spi.DeploymentUnit;
@@ -45,21 +47,16 @@ import org.jboss.switchboard.spi.Resource;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class AnnotatedEJBRefResourceProvider implements MCBasedResourceProvider<JBossAnnotatedEJBRefType>
+public class AnnotatedEJBRefResourceProvider extends AbstractEJBResourceProvider implements MCBasedResourceProvider<JBossAnnotatedEJBRefType>
 {
 
-   /**
-    * EJB Binder resolver
-    */
-   private EJBBinderResolver ejbBinderResolver;
-   
    /**
     * 
     * @param ejbBinderResolver
     */
    public AnnotatedEJBRefResourceProvider(EJBBinderResolver ejbBinderResolver)
    {
-      this.ejbBinderResolver = ejbBinderResolver;
+      super(ejbBinderResolver);
    }
    
    /**
@@ -84,30 +81,15 @@ public class AnnotatedEJBRefResourceProvider implements MCBasedResourceProvider<
    @Override
    public Resource provide(DeploymentUnit unit, JBossAnnotatedEJBRefType annotatedEjbRef)
    {
-      // first check lookup name
-      String lookupName = annotatedEjbRef.getLookupName();
-      if (lookupName != null && !lookupName.trim().isEmpty())
+      Resource resource = this.provideJndiNameBasedResource(unit, annotatedEjbRef);
+      if (resource != null)
       {
-         return new LinkRefResource(lookupName, true);
-      }
-
-      // now check mapped name
-      String mappedName = annotatedEjbRef.getMappedName();
-      if (mappedName != null && !mappedName.trim().isEmpty())
-      {
-         return new LinkRefResource(mappedName, true);
-      }
-      
-      // now check (JBoss specific) jndi name!
-      String jndiName = annotatedEjbRef.getJNDIName();
-      if (jndiName != null && !jndiName.trim().isEmpty())
-      {
-         return new LinkRefResource(jndiName, true);
+         return resource;
       }
       // get the bean interface type
       String beanInterface = this.getBeanInterfaceType(unit.getClassLoader(), annotatedEjbRef);
       // create the EJB reference to resolve
-      EJBReference ejbReference = new EJBReference(unit, annotatedEjbRef.getBeanName(), beanInterface, mappedName, lookupName);
+      EJBReference ejbReference = new EJBReference(unit, annotatedEjbRef.getBeanName(), beanInterface, annotatedEjbRef.getMappedName(), annotatedEjbRef.getLookupName());
       // resolve using the EJBBinder resolver
       EJBBinderResolutionResult result = this.ejbBinderResolver.resolveEJBBinder(unit, ejbReference);
       
@@ -118,8 +100,10 @@ public class AnnotatedEJBRefResourceProvider implements MCBasedResourceProvider<
                + annotatedEjbRef.getName() + " in unit " + unit);
       }
       
-      // return the resource  
-      return new EJBRefResource(result.getJNDIName(), result.getEJBBinderName(), result.getBeanMetadata().getContainerName());
+      // get the invocation dependencies 
+      Collection<?> invocationDependencies = this.getInvocationDependencies(result);
+      // return the resource
+      return new EJBRefResource(result.getJNDIName(), result.getEJBBinderName(), invocationDependencies);
    }
 
    /**
