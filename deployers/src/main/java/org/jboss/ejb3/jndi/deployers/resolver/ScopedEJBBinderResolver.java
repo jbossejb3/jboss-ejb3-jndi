@@ -524,7 +524,19 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
             return true;
          }
          DeploymentUnit ownerDeploymentUnit = reference.getOwnerDeploymentUnit();
-         DeploymentUnit parentOfOwnerDU = ownerDeploymentUnit.getParent();
+         DeploymentUnit parentOfOwnerDU = null;
+         // if we are processing a Component DU, then first go to its parent DU
+         // to get hold of the non-component DU. And then get the parent of the non-component
+         // DU to start processing the relative path
+         if (ownerDeploymentUnit.isComponent())
+         {
+            DeploymentUnit nonComponentDU = ownerDeploymentUnit.getParent();
+            parentOfOwnerDU = nonComponentDU.getParent();
+         }
+         else
+         {
+            parentOfOwnerDU = ownerDeploymentUnit.getParent();
+         }
          if (parentOfOwnerDU == null)
          {
             throw new RuntimeException("Cannot resolve ejbLink: " + ejbLink + " in reference " + reference
