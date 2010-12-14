@@ -33,7 +33,6 @@ import org.jboss.ejb3.jndi.binder.EJBBinder;
 import org.jboss.ejb3.jndi.binder.metadata.SessionBeanType;
 import org.jboss.ejb3.jndi.binder.spi.ProxyFactory;
 import org.jboss.ejb3.jndi.deployers.metadata.SessionBeanTypeWrapper;
-import org.jboss.ejb3.jndi.deployers.proxy.LazyProxyFactory;
 import org.jboss.ejb3.jndi.deployers.proxy.LegacyProxyFactory;
 import org.jboss.ejb3.jndi.deployers.resolver.DependencyBuilder;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
@@ -48,7 +47,6 @@ import org.jboss.reloaded.naming.spi.JavaEEComponent;
 public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
 {
    private List<DependencyBuilder> builders = new CopyOnWriteArrayList<DependencyBuilder>();
-   private ProxyFactory lazy = new LazyProxyFactory();
    private ProxyFactory legacy = new LegacyProxyFactory();
 
    public EJBBinderDeployer(JavaEEComponentInformer informer)
@@ -65,7 +63,7 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
       if(beanMetaData == null)
          return;
 
-      if(!beanMetaData.isSession())
+      if(!beanMetaData.isSession() && !beanMetaData.isService())
          return;
 
       JBossSessionBeanMetaData sessionBeanMetaData = (JBossSessionBeanMetaData) beanMetaData;
@@ -99,7 +97,6 @@ public class EJBBinderDeployer extends AbstractJavaEEComponentDeployer
       BeanMetaDataBuilder builder = BeanMetaDataBuilderFactory.createBuilder(beanInstanceName, EJBBinder.class.getName());
       builder.addConstructorParameter(SessionBeanType.class.getName(), builder.createInject(sessionBeanTypeName));
       builder.addPropertyMetaData("globalContext", builder.createInject("NameSpaces", "globalContext"));
-//      builder.addPropertyMetaData("proxyFactory", sessionBeanMetaData.isStateless() ? lazy : legacy);
       builder.addPropertyMetaData("proxyFactory", legacy);
       builder.setStart("bind");
       builder.setStop("unbind");

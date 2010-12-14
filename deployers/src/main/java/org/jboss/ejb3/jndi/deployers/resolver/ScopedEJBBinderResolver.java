@@ -218,8 +218,8 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
       // generate JNDI name
       String jndiName = this.getJNDIName(du, resolvedBeanMetaData, resolvedInterface);
       String binderName = null;
-      // EJBBinder is only for session beans
-      if (resolvedBeanMetaData.isSession())
+      // EJBBinder is only for session and @Service beans
+      if (resolvedBeanMetaData.isSession() || resolvedBeanMetaData.isService())
       {
          binderName = EJBBinderIdentifierGenerator.getEJBBinderName(this.componentInformer, du, resolvedBeanMetaData.getEjbName());
       }
@@ -241,9 +241,8 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
     */
    private String getMatchingInterface(EJBReference reference, JBossEnterpriseBeanMetaData beanMetaData, DeploymentUnit unit)
    {
-      // We only work with Session beans and (EJB2.x) entity beans.
-      // If it's neither a session bean nor an entity bean, then just return
-      if (!beanMetaData.isSession() && !beanMetaData.isEntity())
+      // We only work with Session beans, @Service beans and (EJB2.x) entity beans.
+      if (!beanMetaData.isSession() && !beanMetaData.isService() && !beanMetaData.isEntity())
       {
          return null;
       }
@@ -303,7 +302,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
 
    private Set<Class<?>> getExposedInterfaces(JBossEnterpriseBeanMetaData enterpriseBean, ClassLoader cl)
    {
-      if (enterpriseBean.isSession() && (enterpriseBean instanceof JBossSessionBeanMetaData))
+      if ((enterpriseBean.isSession() || enterpriseBean.isService()) && (enterpriseBean instanceof JBossSessionBeanMetaData))
       {
          return this.getSessionBeanExposedInterfaces((JBossSessionBeanMetaData) enterpriseBean, cl);
       }
@@ -401,7 +400,7 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
    
    private String getJNDIName(DeploymentUnit unit, JBossEnterpriseBeanMetaData beanMetaData, String interfaceFQN)
    {
-      if (beanMetaData.isSession() && (beanMetaData instanceof JBossSessionBeanMetaData))
+      if ((beanMetaData.isSession() || beanMetaData.isService()) && (beanMetaData instanceof JBossSessionBeanMetaData))
       {
          return this.getGlobalJNDINameForSessionBean(unit, (JBossSessionBeanMetaData) beanMetaData, interfaceFQN);
       }
@@ -440,6 +439,11 @@ public class ScopedEJBBinderResolver implements EJBBinderResolver
 
    private String getJNDINameForEntityBean(DeploymentUnit unit, JBossEntityBeanMetaData entityBean, String interfaceFQN)
    {
+      if (entityBean.getJBossMetaData().isEJB3x())
+      {
+         return entityBean.determineResolvedJndiName(interfaceFQN);
+      }
+      
       InvokerBindingsMetaData invokerBindings = entityBean.determineInvokerBindings();
       if (invokerBindings == null || invokerBindings.isEmpty())
       {
